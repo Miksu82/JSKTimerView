@@ -54,39 +54,42 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
-    
+    NSLog(@"INITINTIN");
+    NSLog(@"INITINTIN");
+    NSLog(@"INITINTIN");
+
     if (self) {
         [self initalSetup];
     }
-    
+
     return self;
 }
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     self = [super initWithCoder:aDecoder];
-    
+
     if (self) {
         [self initalSetup];
     }
-    
+
     return self;
 }
 
 - (void)initalSetup {
     self.remainingTimeInSeconds = 0;
     self.totalTimeInSeconds = 0;
-    
+
     self.running = NO;
     self.finished = NO;
-    
+
     self.backgroundColor = [UIColor clearColor];
-    
+
     self.progressColor = [UIColor colorWithRed:51/255.0 green:204/255.0 blue:51/255.0 alpha:1.0];
     self.progressStartColor = [UIColor colorWithRed:51/255.0 green:204/255.0 blue:51/255.0 alpha:1.0];
     self.progressNearFinishedColor = [UIColor colorWithRed:1.0 green:204/255.0 blue:51/255.0 alpha:1.0];
     self.progressAlmostFinishedColor = [UIColor redColor];
     self.progressFinishedColor = [UIColor darkGrayColor];
-    
+
     [self createLayer];
     [self createLabel];
     [self createPath];
@@ -94,12 +97,12 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
+
     self.progressLayer.frame = self.bounds;
 }
 
 - (void)dealloc {
-    
+
     if (_viewTimer != nil) {
         [_viewTimer invalidate];
         _viewTimer = nil;
@@ -111,7 +114,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 - (void)setTimerWithDuration:(NSInteger)durationInSeconds {
     self.remainingTimeInSeconds = durationInSeconds;
     self.totalTimeInSeconds = durationInSeconds;
-    
+
     [self setProgress:1 animated:NO];
     [self updateLabelText];
     [self setNeedsDisplay];
@@ -119,47 +122,47 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (void)startTimer {
     [self startTick];
-    
+
     self.running = YES;
     self.finished = NO;
 }
 
 - (void)startTimerWithDuration:(NSInteger)durationInSeconds {
     [self setTimerWithDuration:durationInSeconds];
-    
+
     [self startTimer];
 }
 
 - (BOOL)startTimerWithEndDate:(NSDate *)endDate {
     NSDate *currentDate = [NSDate date];
-    
+
     if ([currentDate compare:endDate] == NSOrderedAscending) {
         NSTimeInterval timeInterval = [endDate timeIntervalSinceReferenceDate] - [currentDate timeIntervalSinceReferenceDate];
         timeInterval = round(timeInterval);
-        
+
         if (timeInterval > 1) {
             [self startTimerWithDuration:timeInterval];
-            
+
             return YES;
         }
     }
-    
+
     return NO;
 }
 
 - (void)pauseTimer {
     [self invalidateTimer];
-    
+
     self.running = NO;
 }
 
 - (void)stopTimer {
     self.remainingTimeInSeconds = 0;
-    
+
     [self pauseTimer];
-    
+
     self.progressColor = self.progressFinishedColor;
-   
+
     [self updateLabelText];
     [self updateProgress];
     [self setNeedsDisplay];
@@ -167,9 +170,9 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (void)resetTimer {
     self.remainingTimeInSeconds = self.totalTimeInSeconds;
-    
+
     [self pauseTimer];
-    
+
     [self updateLabelText];
     [self updateProgress];
     [self setNeedsDisplay];
@@ -177,7 +180,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (void)restartTimer {
     [self resetTimer];
-    
+
     [self startTimer];
 }
 
@@ -194,13 +197,13 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 #pragma mark - Timer Progress Methods
 
 - (void)setProgress:(CGFloat)progress {
-    
+
     progress = [self sanitizeProgressValue:progress];
-    
+
     if (progress > 0) {
         self.remainingTimeInSeconds = (NSInteger)(self.totalTimeInSeconds * progress);
         [self.progressLayer removeAnimationForKey:jsk_progressAnimationKey];
-        
+
         [self setProgress:progress animated:NO];
     } else {
         [self stopTimer];
@@ -208,9 +211,9 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 }
 
 - (void)setProgress:(CGFloat)progress animated:(BOOL)animated {
-    
+
     progress = [self sanitizeProgressValue:progress];
-    
+
     if (progress > 0.4) {
         self.progressColor = self.progressStartColor;
     } else if (progress > 0.15 && self.remainingTimeInSeconds != 1) {
@@ -220,7 +223,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     } else {
         self.progressColor = self.progressAlmostFinishedColor;
     }
-    
+
     if (progress > 0) {
         if (animated) {
             CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
@@ -239,9 +242,9 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
         self.progressLayer.strokeEnd = 0.0f;
         [self.progressLayer removeAnimationForKey:jsk_progressAnimationKey];
     }
-    
+
     _progress = progress;
-    
+
     [self updateLabelText];
 }
 
@@ -250,7 +253,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 - (void)startTick {
     dispatch_async(dispatch_get_main_queue(), ^{
         [self invalidateTimer];
-        
+
         self.viewTimer = [NSTimer scheduledTimerWithTimeInterval:1.0f target:self selector:@selector(tick:) userInfo:nil repeats:YES];
         [[NSRunLoop mainRunLoop] addTimer:self.viewTimer forMode:UITrackingRunLoopMode];
     });
@@ -259,18 +262,18 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 - (void)tick:(id)sender {
     if (self.remainingTimeInSeconds <= 1) {
         [self stopTimer];
-        
+
         self.finished = YES;
-        
+
         if (self.delegate) {
             [self.delegate timerDidFinish:self];
         }
     } else {
         self.remainingTimeInSeconds -= 1;
-        
+
         [self updateProgress];
     }
-    
+
     [self updateLabelText];
     [self setNeedsDisplay];
 }
@@ -288,7 +291,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     } else if (progress < 0) {
         progress = 0;
     }
-    
+
     return progress;
 }
 
@@ -306,27 +309,27 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     self.timerLabel.textAlignment = NSTextAlignmentCenter;
     [self.timerLabel sizeToFit];
     self.timerLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    
+
     [self addSubview:self.timerLabel];
-    
+
     NSLayoutConstraint *centerXConstraint = [NSLayoutConstraint constraintWithItem:self.timerLabel attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0.0];
     NSLayoutConstraint *centerYConstraint = [NSLayoutConstraint constraintWithItem:self.timerLabel attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeCenterY multiplier:1.0 constant:0.0];
-    
+
     [self addConstraints:@[centerXConstraint, centerYConstraint]];
 }
 
 - (void)createLayer {
     self.strokeWidth = CGRectGetWidth(self.bounds) / 15;
-    
+
     CAShapeLayer *progressLayer = [CAShapeLayer layer];
     progressLayer.path = self.strokePath.CGPath;
     progressLayer.fillColor = [[UIColor clearColor] CGColor];
     progressLayer.lineWidth = self.strokeWidth;
     progressLayer.strokeColor = [self.progressStartColor CGColor];
     progressLayer.strokeEnd = 0;
-    
+
     self.progressLayer = progressLayer;
-    
+
     [self.layer addSublayer:progressLayer];
 }
 
@@ -341,7 +344,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     NSInteger numHours = self.remainingTimeInSeconds / 3600;
     NSInteger numMinutes = (self.remainingTimeInSeconds % 3600) / 60;
     NSInteger numSeconds = self.remainingTimeInSeconds % 60;
-    
+
     if (numHours > 9) {
         self.timerLabel.text = [NSString stringWithFormat:@"%02ld:%02ld:%02ld", (long)numHours, (long)numMinutes, (long)numSeconds];
     } else if (numHours > 0) {
@@ -360,7 +363,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (void)setProgressColor:(UIColor *)timerProgressColor {
     _progressColor = timerProgressColor;
-    
+
     self.progressLayer.strokeColor = timerProgressColor.CGColor;
     [self setNeedsDisplay];
 }
@@ -373,11 +376,11 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (void)drawRect:(CGRect)rect {
     CGContextRef context = UIGraphicsGetCurrentContext();
-    
+
     CGContextSetFillColorWithColor(context, self.progressColor.CGColor);
     CGContextSetLineWidth(context, self.strokeWidth / 4);
     CGContextSetStrokeColorWithColor(context, self.progressColor.CGColor);
     CGContextStrokeEllipseInRect(context, CGRectInset(self.bounds, 6, 6));
-} 
+}
 
 @end
