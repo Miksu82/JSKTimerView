@@ -54,9 +54,6 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
-    NSLog(@"INITINTIN");
-    NSLog(@"INITINTIN");
-    NSLog(@"INITINTIN");
 
     if (self) {
         [self initalSetup];
@@ -196,20 +193,6 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
 #pragma mark - Timer Progress Methods
 
-- (void)setProgress:(CGFloat)progress {
-
-    progress = [self sanitizeProgressValue:progress];
-
-    if (progress > 0) {
-        self.remainingTimeInSeconds = (NSInteger)(self.totalTimeInSeconds * progress);
-        [self.progressLayer removeAnimationForKey:jsk_progressAnimationKey];
-
-        [self setProgress:progress animated:NO];
-    } else {
-        [self stopTimer];
-    }
-}
-
 - (void)setProgress:(CGFloat)progress animated:(BOOL)animated {
 
     progress = [self sanitizeProgressValue:progress];
@@ -246,6 +229,10 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     _progress = progress;
 
     [self updateLabelText];
+
+    if ([self.delegate respondsToSelector:@selector(timerProgressed:)]) {
+        [self.delegate timerProgressed:self];
+    }
 }
 
 #pragma mark - Private Timer Methods

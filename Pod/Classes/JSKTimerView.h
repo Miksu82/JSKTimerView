@@ -34,6 +34,9 @@
  */
 - (void)timerDidFinish:(JSKTimerView *)timerView;
 
+@optional
+- (void)timerProgressed:(JSKTimerView *)timerView;
+
 @end
 
 
