@@ -22,6 +22,8 @@
 	
     // Set timer's delegate to this view controller
     self.timerView.delegate = self;
+    self.timerView.labelPausedText = @"Paused";
+    self.timerView.labelFinishedText = @"Finished";
     
     // Start timer
     [self.timerView startTimerWithDuration:60];

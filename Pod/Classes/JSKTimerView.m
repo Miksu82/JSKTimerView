@@ -148,6 +148,9 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     [self invalidateTimer];
 
     self.running = NO;
+    if (self.labelPausedText) {
+        self.timerLabel.text = self.labelPausedText;
+    }
 }
 
 - (void)stopTimer {
@@ -255,10 +258,6 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
         self.finished = YES;
 
-        if (self.labelFinishedText) {
-            self.timerLabel.text = self.labelFinishedText;
-        }
-
         if (self.delegate) {
             [self.delegate timerDidFinish:self];
         }
@@ -327,6 +326,12 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 #pragma mark - Private Update UI Methods
 
 - (void)updateLabelText {
+    // isFinished is not updated if timer is stopped.
+    if (self.labelFinishedText && (self.isFinished || self.remainingTimeInSeconds == 0)) {
+        self.timerLabel.text = self.labelFinishedText;
+        return;
+    }
+
     NSInteger numHours = self.remainingTimeInSeconds / 3600;
     NSInteger numMinutes = (self.remainingTimeInSeconds % 3600) / 60;
     NSInteger numSeconds = self.remainingTimeInSeconds % 60;
