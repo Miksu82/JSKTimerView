@@ -230,7 +230,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 
     [self updateLabelText];
 
-    if ([self.delegate respondsToSelector:@selector(timerProgressed:)]) {
+    if ([self.delegate respondsToSelector:@selector(timerProgressed:)] && !self.isFinished) {
         [self.delegate timerProgressed:self];
     }
 }
