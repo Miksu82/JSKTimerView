@@ -43,6 +43,8 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 @property (nonatomic, strong) UILabel *timerLabel;
 @property (nonatomic, strong) CALayer *progressLayer;
 
+@property (nonatomic) CGFloat initStep;
+
 @end
 
 @implementation JSKTimerView
@@ -109,7 +111,9 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     self.remainingTimeInSeconds = durationInSeconds;
     self.totalTimeInSeconds = durationInSeconds;
 
-    [self setProgress:1 animated:NO];
+    self.initStep = self.frame.size.width / (CGFloat)durationInSeconds;
+
+    [self setProgress:1 animated:YES];
     [self updateLabelText];
     [self setNeedsDisplay];
 }
@@ -212,8 +216,8 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     CGRect oldBounds = self.progressLayer.bounds;
     CGRect newBounds = self.progressLayer.bounds;
 
-    newBounds.size.width = self.frame.size.width * (1 - progress);
-    if (progress > 0) {
+    newBounds.size.width = self.frame.size.width * (1 - progress) + self.initStep;
+    if (progress >= 0) {
         if (animated) {
             CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"bounds"];
             animation.fromValue = [NSValue valueWithCGRect:oldBounds];
