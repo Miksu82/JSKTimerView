@@ -41,8 +41,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 @property (nonatomic, strong) UIColor *progressFinishedColor;
 
 @property (nonatomic, strong) UILabel *timerLabel;
-@property (nonatomic, strong) UIBezierPath *strokePath;
-@property (nonatomic, strong) CAShapeLayer *progressLayer;
+@property (nonatomic, strong) CALayer *progressLayer;
 
 @end
 
@@ -87,15 +86,13 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     self.progressAlmostFinishedColor = [UIColor redColor];
     self.progressFinishedColor = [UIColor darkGrayColor];
 
+    self.layer.borderWidth = 1;
     [self createLayer];
     [self createLabel];
-    [self createPath];
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-
-    self.progressLayer.frame = self.bounds;
 }
 
 - (void)dealloc {
@@ -207,23 +204,29 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
         self.progressColor = self.progressAlmostFinishedColor;
     }
 
+    self.layer.borderColor = self.progressColor.CGColor;
+
+    CGRect oldBounds = self.progressLayer.bounds;
+    CGRect newBounds = self.progressLayer.bounds;
+
+    newBounds.size.width = self.frame.size.width * (1 - progress);
     if (progress > 0) {
         if (animated) {
-            CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-            animation.fromValue = progress == 0 ? @0 : nil;
-            animation.toValue = [NSNumber numberWithFloat:progress];
+            CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"bounds"];
+            animation.fromValue = [NSValue valueWithCGRect:oldBounds];
+            animation.toValue = [NSValue valueWithCGRect:newBounds];
             animation.duration = 1;
-            self.progressLayer.strokeEnd = progress;
+            self.progressLayer.bounds = newBounds;
             [self.progressLayer addAnimation:animation forKey:jsk_progressAnimationKey];
         } else {
             [CATransaction begin];
             [CATransaction setDisableActions:YES];
-            self.progressLayer.strokeEnd = progress;
+            self.progressLayer.bounds = newBounds;
             [CATransaction commit];
         }
     } else {
-        self.progressLayer.strokeEnd = 0.0f;
         [self.progressLayer removeAnimationForKey:jsk_progressAnimationKey];
+        self.progressLayer.bounds = newBounds;
     }
 
     _progress = progress;
@@ -251,6 +254,10 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
         [self stopTimer];
 
         self.finished = YES;
+
+        if (self.labelFinishedText) {
+            self.timerLabel.text = self.labelFinishedText;
+        }
 
         if (self.delegate) {
             [self.delegate timerDidFinish:self];
@@ -308,21 +315,13 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 - (void)createLayer {
     self.strokeWidth = CGRectGetWidth(self.bounds) / 15;
 
-    CAShapeLayer *progressLayer = [CAShapeLayer layer];
-    progressLayer.path = self.strokePath.CGPath;
-    progressLayer.fillColor = [[UIColor clearColor] CGColor];
-    progressLayer.lineWidth = self.strokeWidth;
-    progressLayer.strokeColor = [self.progressStartColor CGColor];
-    progressLayer.strokeEnd = 0;
+    CALayer *progressLayer = [CALayer layer];
+    progressLayer.bounds = CGRectMake(0, 0, 0, self.frame.size.height);
+    progressLayer.anchorPoint = CGPointZero;
 
     self.progressLayer = progressLayer;
 
     [self.layer addSublayer:progressLayer];
-}
-
-- (void)createPath {
-    CGPoint center = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
-    self.progressLayer.path = [UIBezierPath bezierPathWithArcCenter:center radius:self.bounds.size.width / 2 - 6 startAngle:-M_PI_2 endAngle:-M_PI_2 + 2 * M_PI clockwise:YES].CGPath;
 }
 
 #pragma mark - Private Update UI Methods
@@ -351,7 +350,7 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
 - (void)setProgressColor:(UIColor *)timerProgressColor {
     _progressColor = timerProgressColor;
 
-    self.progressLayer.strokeColor = timerProgressColor.CGColor;
+    self.progressLayer.backgroundColor = timerProgressColor.CGColor;
     [self setNeedsDisplay];
 }
 
@@ -359,15 +358,6 @@ static NSString *jsk_progressAnimationKey = @"progressAnimationKey";
     _labelTextColor = color;
     self.timerLabel.textColor = color;
     [self.timerLabel setNeedsDisplay];
-}
-
-- (void)drawRect:(CGRect)rect {
-    CGContextRef context = UIGraphicsGetCurrentContext();
-
-    CGContextSetFillColorWithColor(context, self.progressColor.CGColor);
-    CGContextSetLineWidth(context, self.strokeWidth / 4);
-    CGContextSetStrokeColorWithColor(context, self.progressColor.CGColor);
-    CGContextStrokeEllipseInRect(context, CGRectInset(self.bounds, 6, 6));
 }
 
 @end

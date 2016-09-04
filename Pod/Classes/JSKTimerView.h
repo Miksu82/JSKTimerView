@@ -72,6 +72,7 @@
  */
 @property (nonatomic, weak) id<JSKTimerViewDelegate> delegate;
 
+@property (nonatomic, strong) NSString *labelFinishedText;
 
 ///-----------------------------------------------------------
 /// @name Timer Methods
